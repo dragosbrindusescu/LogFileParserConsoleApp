@@ -10,8 +10,10 @@ try
     do {
         MainMenu.DisplayMainMenu();
 
-        userOption = int.Parse(Console.ReadLine() ?? "");
-
+        string input = Console.ReadLine() ?? "";
+        InputValidator.CanBeInteger(input);
+        
+        userOption = int.Parse(input);
         MenuValidator.CheckIfOptionIsAllowed(MainMenu.AllowedOptions, userOption);
     } while (userOption != 9);
 } 
