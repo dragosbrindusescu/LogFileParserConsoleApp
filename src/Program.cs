@@ -12,7 +12,7 @@ try
 
         string input = Console.ReadLine() ?? "";
         InputValidator.CanBeInteger(input);
-        
+
         userOption = int.Parse(input);
         MenuValidator.CheckIfOptionIsAllowed(MainMenu.AllowedOptions, userOption);
     } while (userOption != 9);

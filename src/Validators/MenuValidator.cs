@@ -2,9 +2,9 @@
 
 public class MenuValidator
 {
-    public static void CheckIfOptionIsAllowed(int[] allowedOptions, int input)
+    public static void CheckIfOptionIsAllowed(Dictionary<string, int> allowedOptions, int input)
     {
-        if (!allowedOptions.Contains(input))
+        if (!allowedOptions.ContainsValue(input))
         {
             throw new FormattedError("This option is not valid!");
         }

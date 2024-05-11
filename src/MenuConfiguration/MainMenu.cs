@@ -2,7 +2,18 @@
 
 public class MainMenu
 {
-    public static readonly int[] AllowedOptions = [1, 2, 9];
+    // public static readonly int[] AllowedOptions = [1, 2, 9];
+
+    public static readonly string ParseFile = "ParseFile";
+    public static readonly string ParseDirectory = "ParseDirectory";
+    public static readonly string Exit = "Exit";
+
+    public static readonly Dictionary<string, int> AllowedOptions = new Dictionary<string,int>
+    {
+        {ParseFile, 1},
+        {ParseDirectory, 2},
+        {Exit, 9}
+    };
 
     public static void DisplayTitle()
     {
