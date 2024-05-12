@@ -43,8 +43,7 @@ public class FileHandler
         }
     }
 
-    public static int 
-    GetLastLineProcessed(IEnumerable<string> logFileLines)
+    public static int GetLastLineProcessed(IEnumerable<string> logFileLines)
     {
         return GetLineInformation(logFileLines, FileSummaryEnum.LinesProcessed);
     }
