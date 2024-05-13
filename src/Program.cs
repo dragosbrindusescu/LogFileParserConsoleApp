@@ -22,68 +22,61 @@ try
         {
             FileMenu.DisplayMenu();
   
-            //citim path-ul fisierului de la tastatura
+            //reading input file path
             string inputFilePath = @$"{Console.ReadLine() ?? ""}"; 
             PathValidator.FileExists(inputFilePath);
 
-            //de indentificat daca fisierul este log. txt sau alt tip ce poate fi interpretat si citit
+            //identify if file is log
 
-            //ajungem la formatul fisierului de log-uri si vedem daca exista
+            //get log file path
             string logFileDirectory = FileHandler.GetLogFileDirectory(inputFilePath);
             string logFilePath = FileHandler.GenerateLogFilePath(inputFilePath);
 
-            // /Users/dragosbrindusescu/Desktop/error.log
+            //checking if directory and file exists
             if(!Directory.Exists(logFileDirectory))
             {
                 Directory.CreateDirectory(logFileDirectory);
             }
 
-            //Daca fisierul nu exista creeam unul
             if(!File.Exists(logFilePath))
             {
                 FileHandler.InitiateLogFileData(logFilePath);
             }
 
-            //manipularea fisierelor log
-            //scoaterea numarului de linii unde a ramas
+            //get last data about parsing errors
             IEnumerable<string> logFileLines = File.ReadLines(logFilePath);
             int lastLineProcessed = FileHandler.GetLastLineProcessed(logFileLines);
             int lastErrorsFound = FileHandler.CountErrorsFound(logFileLines);
             int lastParsingFileDuration = FileHandler.GetParsingDuration(logFileLines);
-
-            TimeSpan previousTs = TimeSpan.FromMilliseconds(lastParsingFileDuration);
-            Console.WriteLine($"Previous processed lines: {lastLineProcessed}");
-            Console.WriteLine($"Previous errors found: {lastErrorsFound}");
-            Console.WriteLine($"Previous time elapsed: {previousTs.Minutes}m {previousTs.Seconds}s {previousTs.Milliseconds}ms");
             
-            int newLineProcessed = 0;
-            int newErrorsFound = 0;
-            //parcurgerea fisierului cu loguri
-            IEnumerable<string> inputFileLines = File.ReadLines(inputFilePath);
+            StringBuilder errors = new StringBuilder();
+            errors.AppendLine(FileHandler.GetErrors(logFileLines));
 
+            //starting the stopwatch
             Stopwatch stopWatch = new Stopwatch();
             stopWatch.Start();
 
+            //resuming parsing the log files (it works even is the first time when parsing the file)
+            IEnumerable<string> inputFileLines = File.ReadLines(inputFilePath);
             for(int i = lastLineProcessed; i < inputFileLines.Count(); i++)
             {
-                newLineProcessed += 1; 
+                lastLineProcessed += 1; 
                 if(inputFileLines.ElementAt(i).Contains("error", StringComparison.CurrentCultureIgnoreCase))
                 {
-                    newErrorsFound += 1;
-                    Console.WriteLine(inputFileLines.ElementAt(i));
+                    lastErrorsFound += 1;
+                    errors.AppendLine(inputFileLines.ElementAt(i));
                 }
             }
 
+            //stopping the stopwatch
             stopWatch.Stop();
-            TimeSpan ts = stopWatch.Elapsed;
 
-            int newParsingFileDuration = (int) ts.TotalMilliseconds;
+            int newParsingFileDuration = (int) stopWatch.Elapsed.TotalMilliseconds;
+            int totalParsingFileDuration = lastParsingFileDuration + newParsingFileDuration;
 
-            FileHandler.WriteLogFile(logFilePath, newLineProcessed, newErrorsFound, newParsingFileDuration);
-
-            Console.WriteLine($"Current processed lines: {newLineProcessed}");
-            Console.WriteLine($"Current errors found: {newErrorsFound}");
-            Console.WriteLine($"Current time elapsed: {ts.Minutes}m {ts.Seconds}s {ts.Milliseconds}ms");
+            //writing the output log files with states about the parsing and display summary
+            FileHandler.WriteLogFile(logFilePath, lastLineProcessed, lastErrorsFound, totalParsingFileDuration, errors.ToString());
+            FileMenu.DisplayData(Path.GetFileName(inputFilePath), lastLineProcessed, lastErrorsFound, totalParsingFileDuration);
         }
     } while (userOption != 9);
 } 

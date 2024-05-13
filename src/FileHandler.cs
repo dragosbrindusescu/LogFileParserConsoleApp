@@ -38,8 +38,11 @@ public class FileHandler
             sw.WriteLine($"Lines processed: {processedLines}");
             sw.WriteLine($"Errors found: {errorsFound}");
             sw.WriteLine($"Parsing file duration (ms): {parsingDuration}");
-            sw.WriteLine("");
-            sw.WriteLine(errors);
+            if(!string.IsNullOrEmpty(errors))
+            {
+                sw.WriteLine("");
+                sw.WriteLine(errors);
+            }
         }
     }
 
@@ -56,6 +59,17 @@ public class FileHandler
     public static int GetParsingDuration(IEnumerable<string> logFileLines)
     {
         return GetLineInformation(logFileLines, FileSummaryEnum.ParsingFileDuration);
+    }
+
+    public static string GetErrors(IEnumerable<string> logFileLines)
+    {
+        StringBuilder errors = new StringBuilder();
+        for (int i = (int)FileSummaryEnum.Errors; i < logFileLines.Count(); i++)
+        {
+            errors.AppendLine(logFileLines.ElementAt(i));
+        }
+
+        return errors.ToString();
     }
 
     private static int GetLineInformation(IEnumerable<string> logFileLines, FileSummaryEnum lineNumber)

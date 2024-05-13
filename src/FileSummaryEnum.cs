@@ -2,7 +2,8 @@
 
 public enum FileSummaryEnum
 {
-    LinesProcessed,
-    ErrorsFound,
-    ParsingFileDuration
+    LinesProcessed = 0,
+    ErrorsFound = 1,
+    ParsingFileDuration = 2,
+    Errors = 4
 }
