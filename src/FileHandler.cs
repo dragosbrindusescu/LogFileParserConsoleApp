@@ -5,17 +5,15 @@ namespace LogFileParser;
 public class FileHandler
 {
     public static readonly string[] SummaryLines = ["Lines processed: ", "Errors found: ", "Parsing file duration: "];
-    private static string GenerateFileName(string filePath)
+
+    public static FileData GetPreviousData(IEnumerable<string> logFileLines, string filePath = "")
     {
-        StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.Append(Path.GetFileNameWithoutExtension(filePath) ?? "");
-        stringBuilder.Append($"_{Path.GetExtension(filePath).Substring(1) ?? ""}");
-        stringBuilder.Append("_info.log");
-        stringBuilder.Replace(" ", "_");
-
-        return stringBuilder.ToString().ToLower();
+        int lastLinesProcessed = GetLastLineProcessed(logFileLines);
+        int lastErrorsFound = CountErrorsFound(logFileLines);
+        int lastParsingFileDuration = GetParsingDuration(logFileLines);
+        string errors = GetErrors(logFileLines);
+        return new FileData(lastLinesProcessed, lastErrorsFound, lastParsingFileDuration, errors, filePath);
     }
-
     public static string GetLogFileDirectory(string filePath)
     {
         return $"{Directory.GetParent(Directory.GetCurrentDirectory())}/logs{Path.GetDirectoryName(filePath) ?? ""}";
@@ -31,7 +29,7 @@ public class FileHandler
         WriteLogFile(filePath, 0, 0, 0);
     }
 
-    public static void WriteLogFile(string filePath, int processedLines, int errorsFound, int parsingDuration, string? errors = "")
+    public static void WriteLogFile(string filePath, int processedLines, int errorsFound, int parsingDuration, string errors = "")
     {
         using (StreamWriter sw = new StreamWriter(filePath))
         {
@@ -42,21 +40,30 @@ public class FileHandler
             {
                 sw.WriteLine("");
                 sw.WriteLine(errors);
+
+                //tried to parse line by line and insert real time data, but it doesn't worked
+                //I think this happened because of StreamWriter
+                // string[] lines = errors.Split(new string[] { "\n", Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
+                // foreach(string line in lines)
+                // {
+                //     sw.WriteLine(line);
+                //     sw.Flush();
+                // }
             }
         }
     }
 
-    public static int GetLastLineProcessed(IEnumerable<string> logFileLines)
+    private static int GetLastLineProcessed(IEnumerable<string> logFileLines)
     {
         return GetLineInformation(logFileLines, FileSummaryEnum.LinesProcessed);
     }
 
-    public static int CountErrorsFound (IEnumerable<string> logFileLines)
+    private static int CountErrorsFound (IEnumerable<string> logFileLines)
     {
         return GetLineInformation(logFileLines, FileSummaryEnum.ErrorsFound);
     }
 
-    public static int GetParsingDuration(IEnumerable<string> logFileLines)
+    private static int GetParsingDuration(IEnumerable<string> logFileLines)
     {
         return GetLineInformation(logFileLines, FileSummaryEnum.ParsingFileDuration);
     }
@@ -78,5 +85,16 @@ public class FileHandler
         int startIndex = line.IndexOf(':') + 1;
 
         return int.Parse(line.Substring(startIndex).Trim());
+    }
+
+    private static string GenerateFileName(string filePath)
+    {
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.Append(Path.GetFileNameWithoutExtension(filePath) ?? "");
+        stringBuilder.Append($"_{Path.GetExtension(filePath).Substring(1) ?? ""}");
+        stringBuilder.Append("_info.log");
+        stringBuilder.Replace(" ", "_");
+
+        return stringBuilder.ToString().ToLower();
     }
 }

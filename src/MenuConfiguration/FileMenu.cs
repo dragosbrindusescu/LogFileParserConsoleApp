@@ -1,33 +1,47 @@
 ﻿using System.Text;
+using ConsoleTables;
 
 namespace LogFileParser;
 
 public class FileMenu
 {
+    private static readonly string[] columns = [" ", "Lines processed", "Errors found", "Duration"];
     public static void DisplayMenu()
     {
         Console.WriteLine("");
         Console.Write("Please enter the file path: ");
     }
 
-    public static void DisplayData(string fileName, int lastLineProcessed, int lastErrorsFound, int parsingDuration)
+    public static void DisplayData(string fileName, FileData previousData, FileData currentData)
     {
-        TimeSpan timeSpan = TimeSpan.FromMilliseconds(parsingDuration);
-
         Console.WriteLine("");
         Console.ForegroundColor = ConsoleColor.DarkCyan;
         Console.WriteLine(fileName);
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < fileName.Length; i++)
+        Console.ResetColor();
+
+        ConsoleTableOptions consoleTableOptions = new ConsoleTableOptions
         {
-            sb.Append('-');
-        }
-        Console.WriteLine(sb.ToString());
-        Console.ResetColor();
-        Console.ForegroundColor = ConsoleColor.DarkGreen;
-        Console.WriteLine($"Processed lines: {lastLineProcessed}");
-        Console.WriteLine($"Errors found: {lastErrorsFound}");
-        Console.WriteLine($"Time elapsed: {timeSpan.Minutes}m {timeSpan.Seconds}s {timeSpan.Milliseconds}ms");
-        Console.ResetColor();
+            EnableCount = false,
+            Columns = columns
+        };
+
+        var table = new ConsoleTable(consoleTableOptions);
+        table.AddRow("Previous values", 
+                    previousData.LinesProcessed, 
+                    previousData.ErrorsFound, 
+                    previousData.GetParsingDurationAsString()
+                    );
+        table.AddRow("New Values", 
+                    currentData.LinesProcessed, 
+                    currentData.ErrorsFound, 
+                    currentData.GetParsingDurationAsString()
+                    );
+        table.AddRow("Updated values",
+                    previousData.LinesProcessed + currentData.LinesProcessed,
+                    previousData.ErrorsFound + currentData.ErrorsFound,
+                    previousData.AddParsingDuration(currentData.ParsingDuration).GetParsingDurationAsString()
+                    );
+        table.Write();
+        Console.WriteLine();
     }
 }

@@ -27,6 +27,7 @@ try
             PathValidator.FileExists(inputFilePath);
 
             //identify if file is log
+            FileTypeValidator.CheckFileType(inputFilePath);
 
             //get log file path
             string logFileDirectory = FileHandler.GetLogFileDirectory(inputFilePath);
@@ -45,38 +46,100 @@ try
 
             //get last data about parsing errors
             IEnumerable<string> logFileLines = File.ReadLines(logFilePath);
-            int lastLineProcessed = FileHandler.GetLastLineProcessed(logFileLines);
-            int lastErrorsFound = FileHandler.CountErrorsFound(logFileLines);
-            int lastParsingFileDuration = FileHandler.GetParsingDuration(logFileLines);
-            
-            StringBuilder errors = new StringBuilder();
-            errors.AppendLine(FileHandler.GetErrors(logFileLines));
+            FileData lastFileData = FileHandler.GetPreviousData(logFileLines, logFilePath);
 
             //starting the stopwatch
             Stopwatch stopWatch = new Stopwatch();
             stopWatch.Start();
 
+            FileData newFileData = new FileData(0, 0, 0);
             //resuming parsing the log files (it works even is the first time when parsing the file)
-            IEnumerable<string> inputFileLines = File.ReadLines(inputFilePath);
-            for(int i = lastLineProcessed; i < inputFileLines.Count(); i++)
-            {
-                lastLineProcessed += 1; 
-                if(inputFileLines.ElementAt(i).Contains("error", StringComparison.CurrentCultureIgnoreCase))
+            
+            using (StreamReader reader = new StreamReader(inputFilePath))
+            {   
+                long offset = lastFileData.LinesProcessed; // Offsetul dorit
+
+                // Mutați cursorul la locația dorită în fișier
+                reader.BaseStream.Seek(offset, SeekOrigin.Begin);
+
+                // Ignoră datele tamponate care ar putea fi citite deja
+                reader.DiscardBufferedData();
+
+                // Deschide fișierul de tip log pentru scriere
+                using (StreamWriter writer = new StreamWriter(logFilePath))
                 {
-                    lastErrorsFound += 1;
-                    errors.AppendLine(inputFileLines.ElementAt(i));
+                    Console.WriteLine(newFileData.LinesProcessed);
+                    int lineCounter = 0;
+
+                    Console.CancelKeyPress += (sender, e) =>
+                    {
+                        // În acest moment putem efectua orice operațiuni necesare de curățare
+                        // înainte de încheierea aplicației.
+                        Console.WriteLine("Ther process was interrupt...");
+
+                        Console.WriteLine(newFileData.LinesProcessed);
+                        Console.WriteLine(lineCounter);
+
+                        // Închidem fișierul, dacă a fost deschis
+                        if (reader != null)
+                        {
+                            writer.Close();
+                            reader.Close();
+                        }
+
+                        // Oprim aplicația
+                        Environment.Exit(0);
+                    };
+
+                    string line;                    // Parcurge fiecare linie din fișierul original
+                    while ((line = reader.ReadLine()) != null)
+                    {
+                        newFileData.IncrementLinesProcessed();
+                        lineCounter++;
+                        // Verifică dacă linia conține cuvântul "error"
+                        if (line.Contains("error", StringComparison.CurrentCultureIgnoreCase))
+                        {
+                            newFileData.IncrementErrorsFound();
+                            // Scrie linia în fișierul de tip log
+                            writer.WriteLine($"Line {lineCounter}: {line}");
+                            // Asigură că scrierea este efectivă în fișierul de log
+                            writer.Flush();
+                        }
+                    }
                 }
             }
+            // IEnumerable<string> inputFileLines = File.ReadLines(inputFilePath);
+            // for(int i = lastFileData.LinesProcessed; i < inputFileLines.Count(); i++)
+            // {
+            //     newFileData.IncrementLinesProcessed();
+            //     if(inputFileLines.ElementAt(i).Contains("error", StringComparison.CurrentCultureIgnoreCase))
+            //     {
+            //         newFileData.IncrementErrorsFound();
+            //         newFileData.AppendError(inputFileLines.ElementAt(i));
+            //     }
+            // }
 
-            //stopping the stopwatch
-            stopWatch.Stop();
+            // //stopping the stopwatch
+            // stopWatch.Stop();
 
-            int newParsingFileDuration = (int) stopWatch.Elapsed.TotalMilliseconds;
-            int totalParsingFileDuration = lastParsingFileDuration + newParsingFileDuration;
+            // newFileData.ParsingDuration = (int) stopWatch.Elapsed.TotalMilliseconds;
 
-            //writing the output log files with states about the parsing and display summary
-            FileHandler.WriteLogFile(logFilePath, lastLineProcessed, lastErrorsFound, totalParsingFileDuration, errors.ToString());
-            FileMenu.DisplayData(Path.GetFileName(inputFilePath), lastLineProcessed, lastErrorsFound, totalParsingFileDuration);
+            // FileHandler.WriteLogFile(logFilePath,
+            //                         lastFileData.LinesProcessed + newFileData.LinesProcessed, 
+            //                         lastFileData.ErrorsFound + newFileData.ErrorsFound, 
+            //                         lastFileData.ParsingDuration + newFileData.ParsingDuration,
+            //                         $"{lastFileData.Errors}\n{newFileData.Errors}"
+            //                         );
+            // FileMenu.DisplayData(Path.GetFileName(inputFilePath), lastFileData, newFileData);
+        }
+
+        if(userOption == MainMenu.AllowedOptions[MainMenu.ParseDirectory])
+        {
+            DirectoryMenu.DisplayMenu();
+
+            //reading input file path
+            string inputDirectoryPath = @$"{Console.ReadLine() ?? ""}"; 
+            PathValidator.DirectoryExists(inputDirectoryPath);
         }
     } while (userOption != 9);
 } 
