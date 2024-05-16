@@ -3,19 +3,24 @@ using System.Text;
 
 namespace LogFileParser;
 
-public class FileData 
+public class StateData 
 {
     private int linesProcessed;
     private int errorsFound;
     private int parsingDuration;
-    private StringBuilder errors;
     private string filePath;
-    public FileData(int linesProcessed, int errorsFound, int parsingDuration, string errors = "", string filePath = "")
+    public StateData(StateData stateData)
+    {
+        linesProcessed = stateData.linesProcessed;
+        errorsFound = stateData.errorsFound;
+        parsingDuration = stateData.parsingDuration;
+        filePath = stateData.filePath;
+    }
+    public StateData(int linesProcessed, int errorsFound, int parsingDuration, string filePath = "")
     {
         this.linesProcessed = linesProcessed;
         this.errorsFound = errorsFound;
         this.parsingDuration = parsingDuration;
-        this.errors = new StringBuilder(errors);
         this.filePath = filePath;
     }
     public int LinesProcessed
@@ -33,11 +38,6 @@ public class FileData
         get {return parsingDuration;}
         set {parsingDuration = value;}
     }
-    public string Errors
-    {
-        get {return errors.ToString();}    
-        set {errors = new StringBuilder(value);}
-    }
     public string FilePath
     {
         get {return filePath;}
@@ -53,20 +53,16 @@ public class FileData
         errorsFound++;
     }
 
-    public string GetParsingDurationAsString()
+    public static string GetParsingDurationAsString(int parsingDuration)
     {
-        TimeSpan ts = TimeSpan.FromMilliseconds(ParsingDuration);
+        TimeSpan ts = TimeSpan.FromMilliseconds(parsingDuration);
 
         return $"{ts.Minutes}m {ts.Seconds}s {ts.Milliseconds}ms";
     }
 
-    public FileData AddParsingDuration(int miliseconds)
+    public StateData AddParsingDuration(int miliseconds)
     {
         parsingDuration += miliseconds;
         return this;
-    }
-    public void AppendError(string line)
-    {
-        errors.AppendLine(line);
     }
 }

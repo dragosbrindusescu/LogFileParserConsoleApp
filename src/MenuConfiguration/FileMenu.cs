@@ -12,7 +12,7 @@ public class FileMenu
         Console.Write("Please enter the file path: ");
     }
 
-    public static void DisplayData(string fileName, FileData previousData, FileData currentData)
+    public static void DisplayData(string fileName, StateData previousData, StateData currentData)
     {
         Console.WriteLine("");
         Console.ForegroundColor = ConsoleColor.DarkCyan;
@@ -29,17 +29,17 @@ public class FileMenu
         table.AddRow("Previous values", 
                     previousData.LinesProcessed, 
                     previousData.ErrorsFound, 
-                    previousData.GetParsingDurationAsString()
+                    StateData.GetParsingDurationAsString(previousData.ParsingDuration)
                     );
-        table.AddRow("New Values", 
+        table.AddRow("New Values",
+                    currentData.LinesProcessed - previousData.LinesProcessed,
+                    currentData.ErrorsFound - previousData.ErrorsFound,
+                    StateData.GetParsingDurationAsString(currentData.ParsingDuration - previousData.ParsingDuration)
+                    );   
+        table.AddRow("Total", 
                     currentData.LinesProcessed, 
                     currentData.ErrorsFound, 
-                    currentData.GetParsingDurationAsString()
-                    );
-        table.AddRow("Updated values",
-                    previousData.LinesProcessed + currentData.LinesProcessed,
-                    previousData.ErrorsFound + currentData.ErrorsFound,
-                    previousData.AddParsingDuration(currentData.ParsingDuration).GetParsingDurationAsString()
+                    StateData.GetParsingDurationAsString(currentData.ParsingDuration)
                     );
         table.Write();
         Console.WriteLine();
