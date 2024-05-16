@@ -29,53 +29,8 @@ try
             //identify if file is log
             FileTypeValidator.CheckFileType(inputFilePath);
 
-            //get log file path
-            string statePath = FileHandler.InitiateStateFile(inputFilePath);
-            
-            //get last summary data about parsing errors
-            IEnumerable<string> stateFileLines = File.ReadLines(statePath).Take(3);
-            StateData previousData = StateDataHandler.GetPreviousData(stateFileLines, statePath);
-
-            //get content of the state file
-            StringBuilder stateContent = StateDataHandler.GetContent(statePath);
-
-            //prepare to parse the input file for new data
-            StateData newData = new StateData(previousData);
-
-            //starting the stopwatch
-            Stopwatch stopWatch = new Stopwatch();
-            stopWatch.Start();            
-            using (StreamReader reader = new StreamReader(inputFilePath))
-            {  
-                FileHandler.CancelParsingFileIfIsTriggered(
-                    reader, 
-                    stopWatch, 
-                    stateContent, 
-                    previousData, 
-                    newData, 
-                    stateFileLines, 
-                    statePath, 
-                    inputFilePath
-                );
-                
-                //parse the file to the line where stopped before
-                StateDataHandler.ResumeReader(reader, previousData);
-
-                StateDataHandler.ParsingData(ref newData, reader, stateContent);
-            }
-            //stopping the stopwatch and added the time
-            stopWatch.Stop();
-
-            FileHandler.WritingStateFile(
-                statePath, 
-                previousData, 
-                newData, 
-                stopWatch, 
-                stateContent, 
-                stateFileLines
-            );
-
-            FileMenu.DisplayData(Path.GetFileName(inputFilePath), previousData, newData);
+            //parse the input file and log errors
+            FileHandler.ParseFileAndLogErrors(inputFilePath);
         }
 
         if(userOption == MainMenu.AllowedOptions[MainMenu.ParseDirectory])
@@ -84,7 +39,14 @@ try
 
             //reading input file path
             string inputDirectoryPath = @$"{Console.ReadLine() ?? ""}"; 
-            PathValidator.DirectoryExists(inputDirectoryPath);
+
+            // Get all files in the directory
+            IEnumerable<string> files = DirectoryHandler.GetFiles(inputDirectoryPath);
+
+            foreach (string file in files)
+            {
+                FileHandler.ParseFileAndLogErrors(file);
+            }
         }
     } while (userOption != 9);
 } 

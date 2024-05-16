@@ -2,3 +2,4 @@ src/bin
 src/obj
 /logs
 /public
+/.DS_STORE

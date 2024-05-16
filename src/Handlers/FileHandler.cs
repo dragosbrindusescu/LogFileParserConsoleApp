@@ -5,6 +5,57 @@ namespace LogFileParser;
 
 public class FileHandler
 {
+        public static void ParseFileAndLogErrors(string inputFilePath)
+    {
+            //get log file path
+            string statePath = InitiateStateFile(inputFilePath);
+            
+            //get last summary data about parsing errors
+            IEnumerable<string> stateFileLines = File.ReadLines(statePath).Take(3);
+            StateData previousData = StateDataHandler.GetPreviousData(stateFileLines, statePath);
+
+            //get content of the state file
+            StringBuilder stateContent = StateDataHandler.GetContent(statePath);
+
+            //prepare to parse the input file for new data
+            StateData newData = new StateData(previousData);
+
+            //starting the stopwatch
+            Stopwatch stopWatch = new Stopwatch();
+            stopWatch.Start();            
+            using (StreamReader reader = new StreamReader(inputFilePath))
+            {  
+                CancelParsingFileIfIsTriggered(
+                    reader, 
+                    stopWatch, 
+                    stateContent, 
+                    previousData, 
+                    newData, 
+                    stateFileLines, 
+                    statePath, 
+                    inputFilePath
+                );
+                
+                //parse the file to the line where stopped before
+                StateDataHandler.ResumeReader(reader, previousData);
+
+                StateDataHandler.ParsingData(ref newData, reader, stateContent);
+            }
+            //stopping the stopwatch and added the time
+            stopWatch.Stop();
+
+            WritingStateFile(
+                statePath, 
+                previousData, 
+                newData, 
+                stopWatch, 
+                stateContent, 
+                stateFileLines
+            );
+
+            FileMenu.DisplayData(Path.GetFileName(inputFilePath), previousData, newData);
+    }
+
     public static string StateDirectory(string filePath)
     {
         return $"{Directory.GetParent(Directory.GetCurrentDirectory())}/logs{Path.GetDirectoryName(filePath) ?? ""}";
