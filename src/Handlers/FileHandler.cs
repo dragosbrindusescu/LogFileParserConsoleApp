@@ -5,7 +5,7 @@ namespace LogFileParser;
 
 public class FileHandler
 {
-        public static void ParseFileAndLogErrors(string inputFilePath)
+    public static void ParseFileAndLogErrors(string inputFilePath)
     {
             //get log file path
             string statePath = InitiateStateFile(inputFilePath);
@@ -56,17 +56,17 @@ public class FileHandler
             FileMenu.DisplayData(Path.GetFileName(inputFilePath), previousData, newData);
     }
 
-    public static string StateDirectory(string filePath)
+    private static string StateDirectory(string filePath)
     {
         return $"{Directory.GetParent(Directory.GetCurrentDirectory())}/logs{Path.GetDirectoryName(filePath) ?? ""}";
     }
 
-    public static string StateFilePath(string filePath)
+    private static string StateFilePath(string filePath)
     {
         return $"{StateDirectory(filePath)}/{GenerateFileName(filePath)}";
     }
 
-    public static void InitiateStateFileData(string filePath)
+    private static void InitiateStateFileData(string filePath)
     {
         WritingSummaryData(filePath, 0, 0, 0);
     }
@@ -92,7 +92,7 @@ public class FileHandler
         }
     }
 
-    public static void CancelParsingFileIfIsTriggered(StreamReader reader, Stopwatch stopWatch, StringBuilder stateContent, StateData previousData, StateData newData, IEnumerable<string> stateFileLines, string statePath, string inputFilePath)
+    private static void CancelParsingFileIfIsTriggered(StreamReader reader, Stopwatch stopWatch, StringBuilder stateContent, StateData previousData, StateData newData, IEnumerable<string> stateFileLines, string statePath, string inputFilePath)
     {
         Console.CancelKeyPress += (sender, e) =>
         {
@@ -121,7 +121,7 @@ public class FileHandler
         };
     }
 
-    public static string InitiateStateFile(string inputFilePath)
+    private static string InitiateStateFile(string inputFilePath)
     {
         string stateDirectory = StateDirectory(inputFilePath);
         string statePath = StateFilePath(inputFilePath);
@@ -140,7 +140,7 @@ public class FileHandler
         return statePath;
     }
 
-    public static void WritingStateFile(string statePath, StateData previousData, StateData newData, Stopwatch stopWatch, StringBuilder stateContent, IEnumerable<string> stateFileLines)
+    private static void WritingStateFile(string statePath, StateData previousData, StateData newData, Stopwatch stopWatch, StringBuilder stateContent, IEnumerable<string> stateFileLines)
     {
         if(StateDataHandler.IsDifferentState(previousData, newData))
         {
