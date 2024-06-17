@@ -12,6 +12,7 @@ public class FormattedError: Exception
         Console.WriteLine($"Error Message: {exception.Message}");
         Console.WriteLine($"Stack Trace: {exception.StackTrace}");
         Console.ResetColor();
+        Console.WriteLine("");
     }
 
     public void DisplayErrorMessage()
@@ -20,5 +21,6 @@ public class FormattedError: Exception
         Console.ForegroundColor = ConsoleColor.Red;
         Console.WriteLine(Message);
         Console.ResetColor();
+        Console.WriteLine("");
     }
 }

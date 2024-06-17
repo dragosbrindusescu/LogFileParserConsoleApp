@@ -1,17 +1,16 @@
-﻿using System.Diagnostics;
-using System.Text;
-using LogFileParser;
+﻿using LogFileParser;
 
-try 
+int userOption = -1;
+
+MainMenu.DisplayTitle();
+MainMenu.DisplayDescription();
+
+do
 {
-    int userOption;
+    MainMenu.DisplayMainMenu();
 
-    MainMenu.DisplayTitle();
-    MainMenu.DisplayDescription();
-
-    do {
-        MainMenu.DisplayMainMenu();
-
+    try
+    {
         string input = Console.ReadLine() ?? "";
         InputValidator.CanBeInteger(input);
 
@@ -21,9 +20,9 @@ try
         if (userOption == MainMenu.AllowedOptions[MainMenu.ParseFile])
         {
             FileMenu.DisplayMenu();
-  
+
             //reading input file path
-            string inputFilePath = @$"{Console.ReadLine() ?? ""}"; 
+            string inputFilePath = @$"{Console.ReadLine() ?? ""}";
             PathValidator.FileExists(inputFilePath);
 
             //identify if file is log
@@ -33,12 +32,12 @@ try
             FileHandler.ParseFileAndLogErrors(inputFilePath);
         }
 
-        if(userOption == MainMenu.AllowedOptions[MainMenu.ParseDirectory])
+        if (userOption == MainMenu.AllowedOptions[MainMenu.ParseDirectory])
         {
             DirectoryMenu.DisplayMenu();
 
             //reading input file path
-            string inputDirectoryPath = @$"{Console.ReadLine() ?? ""}"; 
+            string inputDirectoryPath = @$"{Console.ReadLine() ?? ""}";
 
             // Get all files in the directory
             IEnumerable<string> files = DirectoryHandler.GetFiles(inputDirectoryPath);
@@ -48,13 +47,13 @@ try
                 FileHandler.ParseFileAndLogErrors(file);
             }
         }
-    } while (userOption != 9);
-} 
-catch(FormattedError error) 
-{
-    error.DisplayErrorMessage();
-} 
-catch(Exception exception)
-{
-    FormattedError.DisplayCompleteError(exception);
-}
+    }
+    catch (FormattedError error)
+    {
+        error.DisplayErrorMessage();
+    }
+    catch (Exception exception)
+    {
+        FormattedError.DisplayCompleteError(exception);
+    }
+} while (userOption != 9);
